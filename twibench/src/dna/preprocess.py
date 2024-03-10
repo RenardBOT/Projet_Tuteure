@@ -57,7 +57,7 @@ def parse_args():
     show_or_train = parser.add_mutually_exclusive_group(required=True)
     show_or_train.add_argument('--show', action='store_true', help='Affiche les ensembles de données disponibles.')
     show_or_train.add_argument('--dataset',type=str, help='Nom de l\'ensemble de données à convertir en k-LCS sans l\'extension.')
-    parser.add_argument('--test', type=int, help='Sépare les données en train et test. La valeur est le pourcentage de données à mettre dans le test, en int.')
+    parser.add_argument('--test', type=int, choices=range(101), metavar="(0-100)", help='Sépare les données en train et test. La valeur est le pourcentage de données à mettre dans le test, en int.')
     parser.add_argument('--output', type=str, help='Nom du fichier csv de sortie dans le dossier lcs, sans l\'extension.')
     args = parser.parse_args()
 
@@ -88,10 +88,6 @@ def split_dataset(dataframe, test_size):
 
 def write_split_lcs(train, test, output_file):
 
-    # keep 10 lines for testing
-    train = train.head(10)
-    test = test.head(10)
-
     train_lcs, time_exec_train = from_df(train)
     print("--- Temps d'exécution  intermédiaire pour le jeu de train : ", time_exec_train)
     test_lcs, time_exec_test = from_df(test)
@@ -108,9 +104,6 @@ def write_split_lcs(train, test, output_file):
     
 
 def write_lcs(dataframe, output_file):
-
-    # keep 10 lines for testing
-    dataframe = dataframe.head(10)
 
     lcs, time_exec = from_df(dataframe)
 

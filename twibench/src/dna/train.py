@@ -88,13 +88,47 @@ def load_dna(train_path, test_path):
 def longest_lcs(dna_dataframe,lcs_dataframe,type):
     longest_lcs = []
     print("Calcul de la longueur du plus long LCS pour le jeu de ",type,"...")
-    for index, row in tqdm(dna_dataframe.iterrows(), total=dna_dataframe.shape[0]):
+    for _, row in tqdm(dna_dataframe.iterrows(), total=dna_dataframe.shape[0]):
         user_dna = row["DNA"]
-        for index,row in lcs_dataframe.iterrows():
+        for _,row in lcs_dataframe.iterrows():
             if str(row['path']) in str(user_dna):
                 longest_lcs.append(row['length'])
                 break
     
+    # Jointure sur la droite
+    dna_dataframe['longest_lcs'] = longest_lcs
+
+def train(train_dna_dataframe, max_k):
+    
+    X_train = train_dna_dataframe['longest_lcs']
+    y_train = train_dna_dataframe['label']
+
+    accuracy_lst = []
+
+    for k in range(2,max_k+1):
+        y_pred = X_train < k
+        y_pred = y_pred.apply(lambda x: 'HUMAN' if x else 'BOT')
+        accuracy_lst.append(accuracy_score(y_train, y_pred))
+
+    best_k = np.argmax(accuracy_lst) + 2
+    print("Meilleur k : ", best_k)
+
+def test(test_dna_dataframe, best_k):
+    X_test = test_dna_dataframe['longest_lcs']
+    y_test = test_dna_dataframe['label']
+
+    y_pred = X_test < best_k
+    y_pred = y_pred.apply(lambda x: 'HUMAN' if x else 'BOT')
+
+    # matrice de confuction
+    print("Matrice de confusion --- ")
+    print(f"TP : {sum((y_test == 'HUMAN') & (y_pred) == 'HUMAN')} | FP : {sum((y_test == 'BOT') & (y_pred) == 'HUMAN')}")
+    print(f"FN : {sum((y_test == 'HUMAN') & (y_pred) == 'BOT')} | TN : {sum((y_test == 'BOT') & (y_pred) == 'BOT')}")
+    print("Accuracy : ", accuracy_score(y_test, y_pred))
+    print("F1 : ", f1_score(y_test, y_pred, average='weighted'))
+    print("Recall : ", recall_score(y_test, y_pred, average='weighted'))
+    print("Precision : ", precision_score(y_test, y_pred, average='weighted',zero_division=0))
+
 
 if __name__ == "__main__":
     args = parse_args()
@@ -113,5 +147,10 @@ if __name__ == "__main__":
 
     longest_lcs(train_dna_dataframe,train_lcs_dataframe,"train")
     longest_lcs(test_dna_dataframe,test_lcs_dataframe,"test")
+
+    max_k = train_lcs_dataframe['k'].max() 
+
+    best_k = train(train_dna_dataframe, max_k)
+    test(test_dna_dataframe, best_k)
 
 
