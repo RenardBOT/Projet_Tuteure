@@ -112,6 +112,7 @@ def train(train_dna_dataframe, max_k):
 
     best_k = np.argmax(accuracy_lst) + 2
     print("Meilleur k : ", best_k)
+    return best_k
 
 def test(test_dna_dataframe, best_k):
     X_test = test_dna_dataframe['longest_lcs']
@@ -120,12 +121,14 @@ def test(test_dna_dataframe, best_k):
     y_pred = X_test < best_k
     y_pred = y_pred.apply(lambda x: 'HUMAN' if x else 'BOT')
 
-    # matrice de confuction
-    print("Matrice de confusion --- ")
-    print(f"TP : {sum((y_test == 'HUMAN') & (y_pred) == 'HUMAN')} | FP : {sum((y_test == 'BOT') & (y_pred) == 'HUMAN')}")
-    print(f"FN : {sum((y_test == 'HUMAN') & (y_pred) == 'BOT')} | TN : {sum((y_test == 'BOT') & (y_pred) == 'BOT')}")
+    print("-- CONFUSION MATRIX --- ")
+    print(" ")
+    print(pd.crosstab(y_test, y_pred, rownames=['Reel'], colnames=['Prediction'], margins=True))
+    print(" ")
+    print("-------------------")
+    print(" ")
     print("Accuracy : ", accuracy_score(y_test, y_pred))
-    print("F1 : ", f1_score(y_test, y_pred, average='weighted'))
+    print("F1-score : ", f1_score(y_test, y_pred, average='weighted'))
     print("Recall : ", recall_score(y_test, y_pred, average='weighted'))
     print("Precision : ", precision_score(y_test, y_pred, average='weighted',zero_division=0))
 

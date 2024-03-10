@@ -44,18 +44,10 @@ if __name__ == '__main__':
                 dataframe["user_id"] = dataframe["user_id"].astype(float)
                 dataframe["user_id"] = dataframe["user_id"].astype(int)
                 
-                # Add a DNA column representing the gene of the tweet.
-                # - A if it is a tweet, 
-                # - C if it is a reply (in_reply_to_status_id is not zero)
-                # - T if it is a retweet (retweeted_status_id is not zero)
                 dataframe["DNA"] = "A"
                 dataframe.loc[dataframe["in_reply_to_status_id"] != 0, "DNA"] = "C"
                 dataframe.loc[dataframe["retweeted_status_id"] != 0, "DNA"] = "T"
 
-                # In a .txt file, write for each line :
-                # - the user_id
-                # - the DNA string (concatenation of all the DNA of the tweets of the user ordered by timestamp)
-                # formatted like this : <user_id> <DNA_string>
                 max_dna_length = 999
                 dataframe = dataframe.groupby("user_id").agg({"DNA": lambda x: "".join(x)[:max_dna_length]})
                 dataframe = dataframe.reset_index()
@@ -66,9 +58,6 @@ if __name__ == '__main__':
                 else:
                     dataframe["label"] = "BOT"
 
-                
-                #dataframe.to_csv(os.path.join(output_path,".csv"), sep=" ", header=False, index=False)
-                # write in csv file in formattd_datasets/dna/cresci-2017-<subdataset>.csv
                 dna_file_path = os.path.join(dna_path, dataset +'_'+subdataset + ".csv")
                 dataframe.to_csv(dna_file_path,index=False)
 

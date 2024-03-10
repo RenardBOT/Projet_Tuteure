@@ -88,13 +88,6 @@ def train_LR(X_train, y_train, X_test, y_test, grid=False):
     X_train = scaler.fit_transform(X_train)
     X_test = scaler.transform(X_test)
 
-    param_grid = {
-        'C': [0.1, 1, 10, 100],
-        'solver': ['saga'],
-        'max_iter': [100, 500, 1000, 2000],
-        'tol': [0.0001, 0.0005, 0.001]
-    }
-
     if grid:
         grid_search = gridsearch.gridsearch_LR(X_train, X_test, y_train, y_test)
         best_model = grid_search.best_estimator_
