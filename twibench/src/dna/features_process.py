@@ -7,39 +7,6 @@ import pandas as pd
 from pathlib import Path
 from sklearn.model_selection import train_test_split
 
-# Retrieving config file
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from config import Config
-import csv
-
-sys.setrecursionlimit(1000000)
-
-
-def from_df(dfdna):
-    if "user_id" not in dfdna.columns or "DNA" not in dfdna.columns:
-        raise Exception("Le dataframe doit contenir les colonnes user_id et DNA")
-    
-    dna_dic = {}
-    for index, row in dfdna.iterrows():
-        dna_dic[row["user_id"]] = row["DNA"]
-
-    output_dataframe = pd.DataFrame(columns=["k", "length", "path"])
-
-    # Computing the k-LCS using suffix trees
-    start_time = time.time()
-    try:
-        tree = Tree(dna_dic)
-        
-        for k, length, path in tree.common_substrings():
-            # retirer tous les espaces de la chaine de caractères
-            path = str(path).replace(" ", "")
-            output_dataframe = pd.concat([output_dataframe, pd.DataFrame({"k": [k], "length": [length], "path": [path]})], ignore_index=True)
-    except Exception as e:
-        print("Erreur pendant le calcul du suffix tree (LCS):" + str(e))
-    end_time = time.time()
-
-    return output_dataframe, end_time - start_time
-
 
 # Retrieving config file
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -49,9 +16,10 @@ datasets_path, datasets_list, formatted_datasets_path = Config().getDatasetsConf
 output_lcs_path = os.path.join(formatted_datasets_path, "lcs")
 formatted_datasets_path = os.path.join(formatted_datasets_path, "mixed_dna")
 
+sys.setrecursionlimit(1000000)
 
 
-# ARGUMENT PARSING. 
+
 def parse_args():
     parser = argparse.ArgumentParser(description='Calcule le tableau des k-LCS pour un ensemble de données donné, au format CSV.')
     show_or_train = parser.add_mutually_exclusive_group(required=True)
@@ -71,6 +39,33 @@ def parse_args():
             print_datasets()
             sys.exit(1)
         return args
+
+
+
+def from_df(dfdna):
+    if "user_id" not in dfdna.columns or "DNA" not in dfdna.columns:
+        raise Exception("Le dataframe doit contenir les colonnes user_id et DNA")
+    
+    dna_dic = {}
+    for index, row in dfdna.iterrows():
+        dna_dic[row["user_id"]] = row["DNA"]
+
+    output_dataframe = pd.DataFrame(columns=["k", "length", "path"])
+
+    # Calcul des k-LCS avec la librairie suffix_tree
+    start_time = time.time()
+    try:
+        tree = Tree(dna_dic)
+        
+        for k, length, path in tree.common_substrings():
+            path = str(path).replace(" ", "")
+            output_dataframe = pd.concat([output_dataframe, pd.DataFrame({"k": [k], "length": [length], "path": [path]})], ignore_index=True)
+    except Exception as e:
+        print("Erreur pendant le calcul du suffix tree (LCS):" + str(e))
+    end_time = time.time()
+
+    return output_dataframe, end_time - start_time
+
 
 def print_datasets():
     print("Available datasets:")

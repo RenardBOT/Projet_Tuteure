@@ -58,10 +58,10 @@ def load_dataset(dataset_path):
     return df
 
 def split(dataframe):
-    # drop label et user_id
+
     X = dataframe.drop(["label", "user_id"], axis=1)
     y = dataframe["label"]
-    # stratisfied split
+
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, stratify=y)
     return X_train, X_test, y_train, y_test
 

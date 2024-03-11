@@ -1,12 +1,29 @@
 import pandas as pd
 import os
 import sys
+from tqdm import tqdm
 
 # Retrieving config file
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import Config
-import csv
 
+
+def get_subdatasets_list(dataset_path, bot_list, human_list):
+    subdatasets = os.listdir(dataset_path)
+    return [subdataset for subdataset in subdatasets if subdataset in bot_list or subdataset in human_list]
+
+def process_dataset(dataset, dataset_path, nameclass_path, bot_list, human_list):
+    output_path = os.path.join(nameclass_path, f"{dataset}-full.csv")
+    subdatasets = get_subdatasets_list(dataset_path, bot_list, human_list)
+    
+    for subdataset in tqdm(subdatasets, desc=f"Processing {dataset}"):
+        output_path = os.path.join(nameclass_path, f"{dataset}_{subdataset}.csv")
+        subdataset_path = os.path.join(dataset_path, subdataset)
+        users_path = os.path.join(subdataset_path, "users.csv")
+        users_df = pd.read_csv(users_path)
+        users_df["label"] = "HUMAN" if subdataset in human_list else "BOT"
+        users_df = users_df[["screen_name", "label"]]
+        users_df.to_csv(output_path, index=False, header=True)
 
 if __name__ == '__main__':
     datasets_path, datasets_list, formatted_datasets_path = Config().getDatasetsConfig()
@@ -14,96 +31,14 @@ if __name__ == '__main__':
 
     for dataset in datasets_list:
         dataset_path = os.path.join(datasets_path, dataset)
-
-
-        print("dataset : ", dataset)
+        print("CHARGEMENT DU DATASET :", dataset)
         
-
-        # -------------------------------------------------------------
-        # --------------------- CRESCI-2015-full ----------------------
-        # -------------------------------------------------------------
-
         if dataset == "cresci-2015":
-
-            human_list = ["TFP", "E13"]
             bot_list = ["INT", "FSF", "TWT"]
-            cresci_2015_subdatasets = os.listdir(dataset_path)
+            human_list = ["TFP", "E13"]
+            process_dataset(dataset, dataset_path, nameclass_path, bot_list, human_list)
 
-            output_path = os.path.join(nameclass_path, dataset+"-full.csv")
-
-            for subdataset in cresci_2015_subdatasets:
-                subdataset_path = os.path.join(dataset_path, subdataset)
-                users_path = os.path.join(subdataset_path, "users.csv")
-                users_df = pd.read_csv(users_path)
-                screen_names = users_df["screen_name"]
-                if subdataset in human_list:
-                    label = "HUMAN"
-                else:
-                    label = "BOT"
-
-                with open(output_path, "a", newline='') as f:
-                    writer = csv.writer(f)
-                    for screen_name in screen_names:
-                        writer.writerow([screen_name, label])
-
-        # -------------------------------------------------------------
-        # --------------------- CRESCI-2017-full ----------------------
-        # -------------------------------------------------------------
-
-        if dataset == "cresci-2017":
+        elif dataset == "cresci-2017":
             bot_list = ["social_spambots_1", "social_spambots_2", "social_spambots_3"]
             human_list = ["genuine_accounts"]
-            cresci_2017_subdatasets = os.listdir(dataset_path)
-
-            cresci_2017_subdatasets = [subdataset for subdataset in cresci_2017_subdatasets if subdataset in bot_list or subdataset in human_list]
-
-            output_path = os.path.join(nameclass_path, dataset+"-full.csv")
-
-            for subdataset in cresci_2017_subdatasets:
-                subdataset_path = os.path.join(dataset_path, subdataset)
-                users_path = os.path.join(subdataset_path, "users.csv")
-                users_df = pd.read_csv(users_path)
-                screen_names = users_df["screen_name"]
-                if subdataset in human_list:
-                    label = "HUMAN"
-                else:
-                    label = "BOT"
-
-                with open(output_path, "a", newline='') as f:
-                    writer = csv.writer(f)
-                    for screen_name in screen_names:
-                        writer.writerow([screen_name, label])
-
-        # -------------------------------------------------------------
-        # --------------------- CRESCI-2017-small----------------------
-        # -------------------------------------------------------------
-                        
-            if dataset == "cresci-2017":
-                bot_list = ["social_spambots_1"]
-                human_list = ["genuine_accounts"]
-                cresci_2017_subdatasets = os.listdir(dataset_path)
-                cresci_2017_subdatasets = [subdataset for subdataset in cresci_2017_subdatasets if subdataset in bot_list or subdataset in human_list]
-
-                output_path = os.path.join(nameclass_path, dataset+"-small.csv")
-
-                for subdataset in cresci_2017_subdatasets:
-                    subdataset_path = os.path.join(dataset_path, subdataset)
-                    users_path = os.path.join(subdataset_path, "users.csv")
-                    users_df = pd.read_csv(users_path)
-                    screen_names = users_df["screen_name"]
-                    if subdataset in human_list:
-                        label = "HUMAN"
-                    else:
-                        label = "BOT"
-
-                    with open(output_path, "a", newline='') as f:
-                        writer = csv.writer(f)
-                        for screen_name in screen_names:
-                            writer.writerow([screen_name, label])
-            
-
-                    
-            
-            
-
-            
+            process_dataset(dataset, dataset_path, nameclass_path, bot_list, human_list)

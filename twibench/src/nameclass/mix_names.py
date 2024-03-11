@@ -6,12 +6,12 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import Config
 
-def dna_dictionnary(path):
+def file_dictionnary(path):
     # Créer un dictionnaire associant un numéro d'id commençant à 0 à un nom de fichier
-    dna_dictionnary = {}
+    file_dictionnary = {}
     for i, file in enumerate(os.listdir(path)):
-        dna_dictionnary[i] = file
-    return dna_dictionnary
+        file_dictionnary[i] = file
+    return file_dictionnary
 
 def name_output_file():
     print("Entrez le nom du fichier de sortie : ", end="")
@@ -67,47 +67,46 @@ def print_statistics(output_dataframe):
     print("Nombre d'humains :", nb_humans)
 
 if __name__ == '__main__':
-    dna_path = os.path.join(Config().getFormattedDatasetsPath(), "dna")
-    dna_dictionnary = dna_dictionnary(dna_path)
+    userclass_path = os.path.join(Config().getFormattedDatasetsPath(), "nameclass")
+    file_dictionnary = file_dictionnary(userclass_path)
 
     exit_app = False
 
-    # Le dataframe final contient deux colonnes : user_id et DNA
-    output_dataframe = pd.DataFrame(columns=["user_id", "DNA", "label"])
+    output_dataframe = pd.DataFrame()
 
     while not exit_app:
         clear_screen()
         
-        user_input = pick_remaining_dataset(dna_dictionnary)
-        file_path = os.path.join(dna_path, dna_dictionnary[user_input])
+        user_input = pick_remaining_dataset(file_dictionnary)
+        file_path = os.path.join(userclass_path, file_dictionnary[user_input])
         # Vérifier si le fichier existe
         if not os.path.exists(file_path):
-            print("ERREUR: Le fichier", dna_dictionnary[user_input], "n'existe pas.")
+            print("ERREUR: Le fichier", file_dictionnary[user_input], "n'existe pas.")
             continue
 
         print(f"Ajout du fichier {file_path} au mélange.")
 
         # Ajouter le fichier au dataframe (colonnes user_id et DNA)
-        dna_dataframe = pd.read_csv(file_path)
+        user_dataframe = pd.read_csv(file_path)
 
         # Taille échantillon
-        sample_size = pick_sample_size(dna_dataframe.shape[0])
-        dna_dataframe = dna_dataframe.sample(sample_size)
+        sample_size = pick_sample_size(user_dataframe.shape[0])
+        user_dataframe = user_dataframe.sample(sample_size)
 
-        output_dataframe = pd.concat([output_dataframe, dna_dataframe], ignore_index=True)
+
+        output_dataframe = pd.concat([output_dataframe, user_dataframe], ignore_index=True)
         
-        del dna_dictionnary[user_input]
+        del file_dictionnary[user_input]
 
         exit_app = exit_choice()
     
     # Enregistrement
-    mixed_names_path = os.path.join(Config().getFormattedDatasetsPath(), "mixed_dna")
+    mixed_names_path = os.path.join(Config().getFormattedDatasetsPath(), "mixed_names")
     if not os.path.exists(mixed_names_path):
         os.makedirs(mixed_names_path)
 
     output_file = name_output_file()
     output_path = os.path.join(mixed_names_path, output_file + ".csv")
-
     print(f"Enregistrement du mélange d'ADN dans le fichier {output_path}")
     output_dataframe.to_csv(output_path, index=False, header=True)
     print("Enregistrement terminé.")

@@ -6,14 +6,10 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-from sklearn.linear_model import LogisticRegression,SGDClassifier
-from sklearn.model_selection import train_test_split, GridSearchCV
-from sklearn.metrics import accuracy_score, f1_score, recall_score, precision_score, roc_auc_score
-from sklearn.preprocessing import StandardScaler
+from sklearn.metrics import accuracy_score, f1_score, recall_score, precision_score
+from sklearn.metrics import matthews_corrcoef
 
 from tqdm import tqdm
-
-import preprocess
 
 
 # Retrieving config file
@@ -103,14 +99,14 @@ def train(train_dna_dataframe, max_k):
     X_train = train_dna_dataframe['longest_lcs']
     y_train = train_dna_dataframe['label']
 
-    accuracy_lst = []
+    mcc_lst = []
 
     for k in range(2,max_k+1):
         y_pred = X_train < k
         y_pred = y_pred.apply(lambda x: 'HUMAN' if x else 'BOT')
-        accuracy_lst.append(accuracy_score(y_train, y_pred))
+        mcc_lst.append(matthews_corrcoef(y_train, y_pred))
 
-    best_k = np.argmax(accuracy_lst) + 2
+    best_k = np.argmax(mcc_lst) + 2
     print("Meilleur k : ", best_k)
     return best_k
 
@@ -131,6 +127,7 @@ def test(test_dna_dataframe, best_k):
     print("F1-score : ", f1_score(y_test, y_pred, average='weighted'))
     print("Recall : ", recall_score(y_test, y_pred, average='weighted'))
     print("Precision : ", precision_score(y_test, y_pred, average='weighted',zero_division=0))
+    print("MCC : ", matthews_corrcoef(y_test, y_pred))
 
 
 if __name__ == "__main__":

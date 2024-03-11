@@ -101,8 +101,13 @@ if __name__ == '__main__':
         exit_app = exit_choice()
     
     # Enregistrement
+    mixed_names_path = os.path.join(Config().getFormattedDatasetsPath(), "mixed_users")
+    if not os.path.exists(mixed_names_path):
+        os.makedirs(mixed_names_path)
+
     output_file = name_output_file()
-    output_path = os.path.join(Config().getFormattedDatasetsPath(), "mixed_users", output_file + ".csv")
+    output_path = os.path.join(mixed_names_path, output_file + ".csv")
+
     print(f"Enregistrement du mélange d'ADN dans le fichier {output_path}")
     output_dataframe.to_csv(output_path, index=False, header=True)
     print("Enregistrement terminé.")

@@ -56,7 +56,6 @@ def tfidf(noms):
     for ngram in list_ngrams:
        strings_ngrams.append(' '.join(ngram)) 
 
-    # 
     vectorizer = CountVectorizer() 
     tfidftrans = TfidfTransformer() 
 
@@ -65,20 +64,3 @@ def tfidf(noms):
     tfidf_list = tfidf.toarray().tolist()
     
     return tfidf_list
-
-
-
-
-# ----- MAIN
-
-if __name__ == '__main__':
-    noms = ['aabbcc','aaaadd']
-
-    for nom in noms:
-        print(nom, bigram(nom))
-    tf = tfidf(noms)
-    print(tf)
-
-    print(shannon_entropy('aAaAaA_1a2A'))
-    print(upper_count('aAaAaA_1a2A'))
-    print(lower_count('aAaAaA_1a2A'))

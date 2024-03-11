@@ -13,7 +13,9 @@ from sklearn.preprocessing import StandardScaler
 
 from tqdm import tqdm
 
-import random_usernames
+import random
+import string
+
 import features_process
 import gridsearch
 
@@ -23,7 +25,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from config import Config
 import csv
 datasets_path, datasets_list, formatted_datasets_path = Config().getDatasetsConfig()
-formatted_datasets_path = os.path.join(formatted_datasets_path, "nameclass")
+formatted_datasets_path = os.path.join(formatted_datasets_path, "mixed_names")
 
 
 
@@ -54,19 +56,27 @@ def print_datasets():
     for dataset in Path(formatted_datasets_path).iterdir():
         print("  -", dataset.name.split(".")[0])
 
+def generate_random_name(length=15, letter_ratio=0.8):
+    letters_count = int(length * letter_ratio)
+    digits_count = length - letters_count
+    letters = random.choices(string.ascii_letters, k=letters_count)
+    digits = random.choices(string.digits, k=digits_count)
+    name = ''.join(random.sample(letters + digits, length))
+    return name
+
 
 def load_dataset(dataset_path,is_bots_random=False):
     csv_path = os.path.join(formatted_datasets_path, dataset_path + ".csv")
-    df = pd.read_csv(csv_path, header=None, names=["screen_name", "label"])
+    df = pd.read_csv(csv_path, header=0)
 
     if is_bots_random:
         nb_humans = df.shape[0]
-        list_bot_names = [random_usernames.generate_random_name(15) for i in range(nb_humans)]
+        list_bot_names = [generate_random_name(15) for i in range(nb_humans)]
         df_bots = pd.DataFrame({"screen_name": list_bot_names, "label": "BOT"})
         df = df[df['label'] == "HUMAN"]
         df = pd.concat([df, df_bots])
 
-    df['label'] = df['label'].map({'HUMAN': 0, 'BOT': 1})
+    print (df.head())
     return df
 
 def gather_features(names_df):
@@ -90,22 +100,34 @@ def train_LR(X_train, y_train, X_test, y_test, grid=False):
 
     if grid:
         grid_search = gridsearch.gridsearch_LR(X_train, X_test, y_train, y_test)
-        best_model = grid_search.best_estimator_
-        y_pred = best_model.predict(X_test)
+        model = grid_search.best_estimator_
+        y_pred = model.predict(X_test)
     else:
         model = LogisticRegression(C=0.1, max_iter=100, solver='saga', tol=0.001, verbose=0)
         model.fit(X_train, y_train)
         y_pred = model.predict(X_test)
+    print_results(X_train, y_train, X_test, y_test, y_pred, model)
 
-
-    print("Confusion matrix: ")
-    print(pd.crosstab(y_test, y_pred, rownames=['Actual'], colnames=['Predicted']))
+def print_results(X_train, y_train, X_test, y_test, y_pred, model):
+    print("-- MODELE --- ")
+    print(" ")
+    print(model)
+    print(" ")
+    print("-- TRAIN & TEST --- ")
+    print(" ")
+    print("Train set : ", X_train.shape)
+    print("Test set : ", X_test.shape)
+    print(" ")
+    print("-- CONFUSION MATRIX --- ")
+    print(" ")
+    print(pd.crosstab(y_test, y_pred, rownames=['Reel'], colnames=['Prediction'], margins=True))
+    print(" ")
     print("-------------------")
-    print("Accuracy: ", accuracy_score(y_test, y_pred))
-    print("F1 score: ", f1_score(y_test, y_pred))
-    print("Recall: ", recall_score(y_test, y_pred))
-    print("Precision: ", precision_score(y_test, y_pred))
-    print("ROC AUC: ", roc_auc_score(y_test, y_pred))
+    print(" ")
+    print("Accuracy : ", accuracy_score(y_test, y_pred))
+    print("F1-score : ", f1_score(y_test, y_pred, average='weighted'))
+    print("Recall : ", recall_score(y_test, y_pred, average='weighted'))
+    print("Precision : ", precision_score(y_test, y_pred, average='weighted',zero_division=0))
 
 
 if __name__ == "__main__":
