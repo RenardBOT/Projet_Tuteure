@@ -154,6 +154,11 @@ def print_results(X_train, y_train, X_test, y_test, y_pred, model):
     print("F1-score : ", f1_score(y_test, y_pred, average='weighted'))
     print("Recall : ", recall_score(y_test, y_pred, average='weighted'))
     print("Precision : ", precision_score(y_test, y_pred, average='weighted',zero_division=0))
+    print("AUC : ", roc_auc_score(np.where(y_test == 'BOT', 1, 0), np.where(y_pred == 'BOT', 1, 0)))
+    print(" ")
+    print("-- IMPORTANT CHARACTERISTICS --- ")
+    print(" ")
+    print(pd.DataFrame({'features': X_train.columns, 'importance': model.feature_importances_}).sort_values('importance', ascending=False))
     
 if __name__ == '__main__':
     datasets_path, datasets_list, formatted_datasets_path = Config().getDatasetsConfig()

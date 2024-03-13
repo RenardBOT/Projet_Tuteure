@@ -38,12 +38,15 @@ def process_subdataset(dataset, subdataset, dataset_path, user_columns_to_keep, 
     merged_df = pd.merge(users_dataframe, last_tweets_df, on='user_id')
 
     # Ajout de la colonne 'label' en fonction du dataset
-    if dataset == "cresci-2017" and subdataset == "genuine_accounts":
+    if dataset == "cresci-2017" and "genuine_accounts" in subdataset:
         merged_df['label'] = "HUMAN"
-    if dataset == "cresci-2015" and subdataset in ["TFP", "E13"]:
+        print("Le subdataset ", subdataset, " est un subdataset humain.")
+    elif dataset == "cresci-2015" and subdataset in ["TFP", "E13"]:
         merged_df['label'] = "HUMAN"
+        print("Le subdataset ", subdataset, " est un subdataset humain.")
     else:
         merged_df['label'] = "BOT"
+        print("Le subdataset ", subdataset, " est un subdataset bot.")
     merged_df = merged_df.drop(columns=['created_at_x', 'created_at_y'])
 
     # Sauvegarde du dataframe fusionné
@@ -88,7 +91,7 @@ if __name__ == '__main__':
         # Liste des sous-datasets selon le dataset
         subdatasets_list = []
         if dataset == "cresci-2017":
-            subdatasets_list = ["social_spambots_1", "social_spambots_2", "social_spambots_3", "genuine_accounts"]
+            subdatasets_list = ["genuine_accounts","social_spambots_1", "social_spambots_2", "social_spambots_3"]
         elif dataset == "cresci-2015":
             subdatasets_list = ["TFP", "E13", "INT", "FSF", "TWT"]
 

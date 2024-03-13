@@ -110,6 +110,11 @@ def train(train_dna_dataframe, max_k):
     print("Meilleur k : ", best_k)
     return best_k
 
+def unsupervised_bestk(lcs_train_dataframe):
+    y_list = lcs_train_dataframe['length'].tolist()
+    derivatives = np.gradient(y_list)
+    return np.argmin(derivatives)+2
+
 def test(test_dna_dataframe, best_k):
     X_test = test_dna_dataframe['longest_lcs']
     y_test = test_dna_dataframe['label']
@@ -151,6 +156,17 @@ if __name__ == "__main__":
     max_k = train_lcs_dataframe['k'].max() 
 
     best_k = train(train_dna_dataframe, max_k)
+
+    # Apprentissage supervisé
+    print(f"--- APPRENTISSAGE SUPERVISE (seuil {best_k})")    
+    test(test_dna_dataframe, best_k)
+
+
+    # Apprentissage non supervisé
+    best_k = unsupervised_bestk(train_lcs_dataframe)
+    
+    print("\n\n\n")
+    print(f"--- APPRENTISSAGE NON SUPERVISE (seuil {best_k})")
     test(test_dna_dataframe, best_k)
 
 

@@ -1,20 +1,19 @@
 import os
 import sys
 import argparse
+import time
+import random
+import string
+
 from pathlib import Path
 
 import numpy as np
 import pandas as pd
 
-from sklearn.linear_model import LogisticRegression,SGDClassifier
-from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, f1_score, recall_score, precision_score, roc_auc_score
 from sklearn.preprocessing import StandardScaler
-
-from tqdm import tqdm
-
-import random
-import string
 
 import features_process
 import gridsearch
@@ -75,8 +74,6 @@ def load_dataset(dataset_path,is_bots_random=False):
         df_bots = pd.DataFrame({"screen_name": list_bot_names, "label": "BOT"})
         df = df[df['label'] == "HUMAN"]
         df = pd.concat([df, df_bots])
-
-    print (df.head())
     return df
 
 def gather_features(names_df):
@@ -101,11 +98,11 @@ def train_LR(X_train, y_train, X_test, y_test, grid=False):
     if grid:
         grid_search = gridsearch.gridsearch_LR(X_train, X_test, y_train, y_test)
         model = grid_search.best_estimator_
-        y_pred = model.predict(X_test)
     else:
         model = LogisticRegression(C=0.1, max_iter=100, solver='saga', tol=0.001, verbose=0)
         model.fit(X_train, y_train)
-        y_pred = model.predict(X_test)
+
+    y_pred = model.predict(X_test)
     print_results(X_train, y_train, X_test, y_test, y_pred, model)
 
 def print_results(X_train, y_train, X_test, y_test, y_pred, model):
@@ -128,6 +125,8 @@ def print_results(X_train, y_train, X_test, y_test, y_pred, model):
     print("F1-score : ", f1_score(y_test, y_pred, average='weighted'))
     print("Recall : ", recall_score(y_test, y_pred, average='weighted'))
     print("Precision : ", precision_score(y_test, y_pred, average='weighted',zero_division=0))
+    print("AUC : ", roc_auc_score(np.where(y_test == 'BOT', 1, 0), np.where(y_pred == 'BOT', 1, 0)))
+
 
 
 if __name__ == "__main__":
@@ -136,11 +135,16 @@ if __name__ == "__main__":
     print("LOADING DATASET: ", args.dataset)
     load_dataset(args.dataset, args.random)
 
+    start_time = time.time()
+
     names_df = load_dataset(args.dataset, args.random)
     features = gather_features(names_df)
 
     X_train, X_test, y_train, y_test = split(features, names_df)
     train_LR(X_train, y_train, X_test, y_test, grid=args.grid)
+
+    end_time = time.time()
+    print("Temps d'exécution total : ", end_time - start_time)
 
 
 
