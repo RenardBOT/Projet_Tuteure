@@ -1,2 +1,3 @@
 Benchmarking various bot detection algorithms on Twitter.
-README.md is currently **Work in Progress**
+
+For a school assignment though. More advanced benching with notebooks currently WIP.
